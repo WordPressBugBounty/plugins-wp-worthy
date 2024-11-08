@@ -616,12 +616,15 @@
         $queryWhere .= ' AND wm.`userid`="' . intval ($_REQUEST ['worthy-filter-author']) . '"';
       
       if (isset ($_REQUEST ['wp-worthy-filter-marker'])) {
-        if (($_REQUEST ['wp-worthy-filter-marker'] > 0) || ($_REQUEST ['wp-worthy-filter-marker'] == '0'))
-          $queryWhere .= ' AND (wm.`status`="' . intval ($_REQUEST ['wp-worthy-filter-marker']) . '")';
-        elseif ($_REQUEST ['wp-worthy-filter-marker'] == 'null')
+        if ($_REQUEST ['wp-worthy-filter-marker'] === 'null')
           $queryWhere .= ' AND (wm.`status` IS NULL)';
-        elseif ($_REQUEST ['wp-worthy-filter-marker'] == 'sr')
-          $queryWhere .= ' AND (wm.`status`=3 OR (wm.`status`=2 AND ' . $postLengthField . '>=' . wp_worthy::EXTRA_LENGTH . '))';
+        elseif ($_REQUEST ['wp-worthy-filter-marker'] === 'sr')
+          $queryWhere .= ' AND wm.`reportable`=1';
+        elseif (
+          ($_REQUEST ['wp-worthy-filter-marker'] > 0) ||
+          ($_REQUEST ['wp-worthy-filter-marker'] === '0')
+        )
+          $queryWhere .= ' AND (wm.`status`="' . intval ($_REQUEST ['wp-worthy-filter-marker']) . '")';
       }
       
       // Show markers without ignored posts by default

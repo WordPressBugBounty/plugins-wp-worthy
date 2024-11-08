@@ -10,7 +10,7 @@
    * Plugin Name: Worthy - VG WORT Integration für Wordpress
    * Plugin URI: https://wp-worthy.de/
    * Description: Vereinfache die Arbeit mit VG WORT und verdiene einfacher Geld mit Deinen Texten als jemals zuvor.
-   * Version: 1.7.3-f23919b
+   * Version: 1.7.4-1211172
    * Author: tiggersWelt.net
    * Author URI: https://tiggerswelt.net/
    * License: GPLv3
@@ -4900,7 +4900,6 @@
               '<div class="inside">',
                 '<div class="wp-worthy-menu-half">',
                   '<p>',
-                    '<input type="radio" name="wp-worthy-payment" id="wp-worthy-payment-paypal" value="paypal" /> ',
                     '<label for="wp-worthy-payment-paypal">',
                       '<img src="', esc_attr (plugins_url ('assets/paypal.png', __FILE__)), '" width="150" height="38" align="absmiddle" />',
                     '</label>',
@@ -8202,6 +8201,7 @@
             $this->getTablename ('worthy_markers', 0),
             [
               'status' => 4,
+              'reportable' => 0,
             ],
             [
               'siteid' => $postID ['siteid'],
@@ -8308,6 +8308,7 @@
       
       // Setup payment
       $Payment = new stdClass;
+      $Payment->Type = 'paypal';
       
       // Try to start the purchase
       try {

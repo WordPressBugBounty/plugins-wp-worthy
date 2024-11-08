@@ -345,7 +345,11 @@
      * @access public
      * @return bool
      **/
-    public function isReportable () : bool {
+    public function isReportable (): bool {
+      // Never try to report anything that's ignored
+      if ($this->isIgnored ())
+        return false;
+
       // Make sure there is a pixel assigned
       if (!is_object ($postPixel = $this->getPixel ()))
         return false;

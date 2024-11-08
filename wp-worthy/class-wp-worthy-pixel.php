@@ -426,6 +426,7 @@
         case 'public':
         case 'url':
         case 'server':
+        case 'reportable':
           return $this->thePixel->$attributeName;
       }
       
