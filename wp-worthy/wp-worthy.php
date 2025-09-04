@@ -10,7 +10,7 @@
    * Plugin Name: Worthy - VG WORT Integration für Wordpress
    * Plugin URI: https://wp-worthy.de/
    * Description: Vereinfache die Arbeit mit VG WORT und verdiene einfacher Geld mit Deinen Texten als jemals zuvor.
-   * Version: 1.7.4-1211172
+   * Version: 1.7.5-698baaf
    * Author: tiggersWelt.net
    * Author URI: https://tiggerswelt.net/
    * License: GPLv3
@@ -21,18 +21,18 @@
   
   /**
    * Copyright (C) 2013-2022 Bernd Holzmueller <bernd@quarxconnect.de>
-   * Copyright (C) 2022-2024 Innorize GmbH <info@innorize.gmbh>
-   * 
+   * Copyright (C) 2023-2025 Innorize GmbH <info@innorize.gmbh>
+   *
    * This program is free software: you can redistribute it and/or modify
    * it under the terms of the GNU General Public License as published by
    * the Free Software Foundation, either version 3 of the License, or   
    * (at your option) any later version.
-   * 
+   *
    * This program is distributed in the hope that it will be useful,
    * but WITHOUT ANY WARRANTY; without even the implied warranty of 
    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the  
    * GNU General Public License for more details.  
-   *  
+   *
    * You should have received a copy of the GNU General Public License
    * along with this program.  If not, see <http://www.gnu.org/licenses/>.
    **/
@@ -168,7 +168,7 @@
           function () {
             echo
               '<meta name="referrer" content="no-referrer-when-downgrade" />', "\n",
-              '<style type="text/css"> #wp-worthy-pixel { line-height: 1px; height: 1px; margin: 0; padding: 0; overflow: hidden; } </style>', "\n";
+              '<style> #wp-worthy-pixel { line-height: 1px; height: 1px; margin: 0; padding: 0; overflow: hidden; } </style>', "\n";
           }
         );
       
@@ -823,7 +823,7 @@
         if ($pixelPosition == self::OUTPUT_BEFORE)
           $pixelPosition = self::OUTPUT_START;
         elseif ($pixelPosition == self::OUTPUT_AFTER)
-          $pixelPosition = self::OUTPUT_END;
+          $pixelPosition = self::OUTPUT_STOP;
       }
       
       if (
@@ -1379,13 +1379,18 @@
      * Output Badge on admin-menu if there are posts to be reported
      * 
      * @access protected
-     * @return int
+     * @return int|null
      **/
     protected function getAdminMenuBadge () {
+      if (!$this->hasPremium ())
+        return null;
+
       $reportablePixels = $this->getReportablePixelsCount ();
       
       if ($reportablePixels ['all'] > 0)
         return $reportablePixels ['all'];
+
+      return null;
     }
     // }}}
     
@@ -1471,7 +1476,7 @@
     /**
      * Generate a link to admin-section of this plugin
      * 
-     * @param enum $Section
+     * @param string $Section
      * @param array $Parameters (optional)
      * @param bool $asPost (optional)
      * @param bool $forceNetwork (otional)
@@ -1519,9 +1524,8 @@
      * @param string $Action
      * @param string $Caption
      * @param array $Parameter (optional)
-     * 
-     * @access private
-     * @return void
+     *
+     * @return string
      **/
     private function inlineAction ($Section, $Action, $Caption, $Parameter = array ()) {
       if (is_array ($Parameter)) {
@@ -1549,9 +1553,8 @@
      * @param string $Section
      * @param array $Actions
      * @param array $Parameter (optional)
-     * 
-     * @access private
-     * @return void
+     *
+     * @return string
      **/
     private function inlineActions ($Section, $Actions, $Parameter = array ()) {
       $buf =
@@ -5970,6 +5973,8 @@
           $failedMarkers [$Item->Private] = $allMarkers [$Item->Private];
       
       // Update statistics
+      $userID = $this->getUserID ();
+
       if (count ($claimedMarkers) > 0) {
         update_option ('worthy_premium_markers_claimed', get_option ('worthy_premium_markers_claimed') + count ($claimedMarkers));
         update_user_meta ($userID, 'worthy_premium_markers_claimed', get_user_meta ($userID, 'worthy_premium_markers_claimed', true) + count ($claimedMarkers));
@@ -5981,7 +5986,6 @@
         (count ($claimedMarkers) > 0)
       ) {
         $create_query = 'INSERT IGNORE INTO `' . $this->getTablename ('worthy_markers', 0) . '` (userid, public, private, server, url) VALUES ';
-        $userID = $this->getUserID ();
         
         foreach ($claimedMarkers as $marker)
           $create_query .= $GLOBALS ['wpdb']->prepare ('(%d, %s, %s, %s, %s), ', $userID, $marker ['pixelPublic'], $marker ['pixelPrivate'], parse_url ($marker ['url'], PHP_URL_HOST), $marker ['url']);
@@ -6652,11 +6656,11 @@
      * 
      * @param mixed $postID
      * @param int $siteId (optional)
-     * 
-     * @access public
+     *
      * @return int
+     * @throws Exception
      **/
-    public function reindexPost ($postID, int $siteId = null) : int {
+    public function reindexPost ($postID, int $siteId = null): int {
       // Make sure we have a post-object
       if (is_object ($postID))
         $thePost = WP_Worthy_Post::fromObject ($postID);
@@ -6908,7 +6912,7 @@
     public function burnPostPixel () {
       $this->verifyNonce ([ $this::ADMIN_SECTION_POSTS ]);
       
-      // Check wheter to ignore this action
+      // Check whether to ignore this action
       if (
         isset ($_REQUEST ['filter_action']) &&
         ((int)$_REQUEST ['filter_action'] == 1)
@@ -6928,7 +6932,7 @@
         if (!get_option ('wp-worthy-enable-burn', false)) {
           $postUserIDs = $this->getUserIDs ($thePost->authorId);
           
-          if (in_array ($pixelItem->userId, $postUserIDs))
+          if (in_array ($thePixel->userId, $postUserIDs))
             continue;
         }
         
@@ -7056,7 +7060,7 @@
       );
       
       // Check each post
-      $missingPixels = get_option ('wp-worthy-check-missing', array ());
+      $missingPixels = get_option ('wp-worthy-check-missing', []);
       $issueDetected = false;
       $ctx = stream_context_create (array (
         'http' => array (
@@ -7074,15 +7078,15 @@
         if (!($url = $this->getPostLink ($postID ['postid'], $postID ['siteid'])))
           continue;
         
-        // Try to retrive its rendered html
+        // Try to retrieve its rendered html
         if (($html = file_get_contents ($url, false, $ctx)) === false)
           continue;
         
-        // Check if there are markers embeded
+        // Check if there are pixels embedded
         $pPostID = $this->packPostID ($postID);
         
         if (
-          (($Cleanup = $this->removeInlineMarkers ($html, true, $inlineMarkers)) === null) ||
+          ($this->removeInlineMarkers ($html, true, $inlineMarkers) === null) ||
           (count ($inlineMarkers) == 0)
         ) {
           if (!in_array ($pPostID, $missingPixels))
@@ -7116,19 +7120,19 @@
           if (!($url = $this->getPostLink ($postID ['postid'], $postID ['siteid'])))
             continue;
           
-          // Try to retrive its rendered html
+          // Try to retrieve its rendered html
           if (($html = file_get_contents ($url, false, $ctx)) === false)
             continue;
           
-          // Check if there are markers embeded
+          // Check if there are pixels embedded
           if (
-            (($Cleanup = $this->removeInlineMarkers ($html, true, $inlineMarkers)) !== null) &&
+            ($this->removeInlineMarkers ($html, true, $inlineMarkers) !== null) &&
             (count ($inlineMarkers) > 0)
           )
-            foreach (array_keys ($missingPixels, $PostID) as $missingIndex)
+            foreach (array_keys ($missingPixels, $pPostID) as $missingIndex)
               unset ($missingPixels [$missingIndex]);
         }
-      
+
       // Store back the results
       update_option ('wp-worthy-check-missing', $missingPixels, false);
     }

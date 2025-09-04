@@ -3,27 +3,30 @@
   class wp_worthy_migration {
     // {{{ getMigrationStats
     /**
-     * Retrive migration statistics
-     * 
+     * Retrieve migration statistics
+     *
      * @param array $siteIds (optional)
      * @param bool $cacheOnly (optional) Don't try to regenerate stats if missing
-     * 
-     * @access public
+     *
      * @return array
      **/
-    public static function getMigrationStats ($siteIds = null, $cacheOnly = false) {
+    public static function getMigrationStats ($siteIds = null, $cacheOnly = false): array {
+      if (defined ('WP_WORTHY_DISABLE_MIGRATION_CHECKS') && WP_WORTHY_DISABLE_MIGRATION_CHECKS)
+        return [];
+
       if (!is_array ($siteIds))
         $siteIds = wp_worthy::singleton ()->getSiteIDs ();
-      
+
       $result = [];
-      
+
       foreach ($siteIds as $siteId) {
         $transientKey = 'wp-worthy-migration-stats-' . $siteId;
-        
-        if (!is_array ($siteMigrationStatus = get_site_transient ($transientKey))) {
+        $siteMigrationStatus = get_site_transient ($transientKey);
+
+        if (!is_array ($siteMigrationStatus)) {
           if ($cacheOnly)
             return [];
-          
+
           $siteMigrationStatus = [
             'inline pixels' => self::migrateInline (false, true, null, [ $siteId ]),
             'pixels from VGW (VG-Wort Krimskram)' => self::migrateByMeta ([ 'vgwpixel' ], false, true, null, [ $siteId ]),
@@ -31,7 +34,7 @@
             'pixels from Torben Leuschners VG-Wort' => self::migrateTlVGWort (false, true, null, [ $siteId ]),
             'pixels from Prosodia VGW' => self::migrateProsodia (false, true, null, [ $siteId ]),
           ];
-          
+
           set_site_transient ($transientKey, $siteMigrationStatus, DAY_IN_SECONDS);
         }
         

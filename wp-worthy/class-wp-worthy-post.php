@@ -596,7 +596,7 @@
      * @return void
      **/
     public function updateLength () /* : void */ {
-      // Retrive length of this post
+      // Retrieve length of this post
       $postLength = $this->getLength (false);
       
       // Store the value on post's meta

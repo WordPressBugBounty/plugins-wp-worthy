@@ -1,5 +1,8 @@
 <?php
 
+  /**
+   * @property-read int $userId
+   **/
   class wp_worthy_pixel {
     /* Internal cache of pixels */
     private static $cachedPixels = [];

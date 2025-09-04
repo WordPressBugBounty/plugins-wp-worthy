@@ -3,8 +3,8 @@ Contributors: tiggerswelt
 Donate link: https://wp-worthy.de/
 Tags: VG WORT, VG-Wort, T.O.M., METIS, Zählmarke, Zählpixel, Geld, Vergütung, Monetarisierung, VGW, VGWort, Verwertungsgesellschaft WORT
 Requires at least: 4.6
-Tested up to: 6.7
-Stable tag: 1.7.4
+Tested up to: 6.8
+Stable tag: 1.7.5
 Requires PHP: 7.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -100,6 +100,13 @@ Alternativ kannst Du auch von [der Worthy-Webseite](https://wp-worthy.de/) die n
 Worthy befindet sich seit Herbst 2013 in der Entwicklung und wurde von zwei hauptberuflichen Autoren ausgiebig getestet. Wir sind uns relativ sicher, dass Worthy äußerst bereit für den Einsatz bei anderen Autoren ist.
 
 Um Worthy noch besser zu machen, freuen wir uns über Dein Feedback. Dieses Changelog soll den Werdegang von Worthy abbilden, auch wenn aktuell das meiste bereits "im Verborgenen" geschehen ist.
+
+= 1.7.5 =
+* Veröffentlicht: 4. September 2025 gegen 18:00
+* Zählmarken-Übersicht konnte einen Fehler auslösen wenn eine Zählmarke einem nicht mehr existierenden Artikel zugeordnet war
+* Badge mit ausstehenden Meldungen wurde eventuell auch ohne aktives Worthy Premium Abonnement angezeigt
+* Kleinere Fehlerkorrekturen aus statischer Code-Analyse
+* Versteckter Schalter hinzugefügt um Migration-Checks zu deaktivieren
 
 = 1.7.4 =
 * Veröffentlicht: 8. November 2024 gegen 00:00

@@ -27,12 +27,9 @@
     /**
      * Setup new address table
      * 
-     * @param plugin $Parent
-     * 
-     * @access friendly
-     * @return void
+     * @param wp_worthy $Parent
      **/
-    function __construct ($Parent) {
+    function __construct (wp_worthy $Parent) {
       parent::__construct (array (
         'singular' => 'post',
         'plural' => 'posts',

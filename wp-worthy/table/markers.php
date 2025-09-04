@@ -27,12 +27,9 @@
     /**
      * Setup new address table
      * 
-     * @param plugin $Parent
-     * 
-     * @access friendly
-     * @return void
+     * @param wp_worthy $Parent
      **/
-    function __construct ($Parent) {
+    function __construct (wp_worthy $Parent) {
       parent::__construct (array (
         'singular' => 'worthy_marker',
         'plural' => 'worthy_markers',
@@ -298,10 +295,19 @@
       if (!$item->postid || ($item->post_title == null))
         return '';
       
-      // Check wheter to force the indexer to run
-      if ((($length = $item->postlength) == 0) && $this->Parent)
-        $length = $this->Parent->reindexPost ($item->postid, $item->siteId);
-      
+      // Check whether to force the indexer to run
+      try {
+        $length = $item->postlength;
+
+        if (
+          ($length == 0) &&
+          $this->Parent
+        )
+          $length = $this->Parent->reindexPost ($item->postid, $item->siteId);
+      } catch (Exception $unrelevantException) {
+        return '';
+      }
+
       // Output column-content
       return sprintf (__ ('%d chars', 'wp-worthy'), $length);
     }
@@ -568,6 +574,8 @@
       unset ($sortField, $sortOrder);
       
       // Prepare source-tables/-fields
+      $queryWhere = 'WHERE 1=1';
+
       $tableCondition =
         '`' . $this->Parent->getTablename ('worthy_markers', 0)  . '` wm ' .
           'LEFT JOIN `' . $this->Parent->getTablename ('users') . '` u ON (wm.userid=u.ID) ';
@@ -604,8 +612,6 @@
       $postIgnoredField .= 'ELSE NULL END)';
       
       // Prepare query-conditions
-      $queryWhere = 'WHERE 1=1';
-      
       if (isset ($_REQUEST ['displayMarkers']))
         $queryWhere .= ' AND wm.`id` IN (' . implode (',', array_map ('intval', explode (',', $_REQUEST ['displayMarkers']))) . ')';
       
